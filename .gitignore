@@ -1,0 +1,5 @@
+.env
+*.wav
+*.txt
+.idea/
+__pycache__/
