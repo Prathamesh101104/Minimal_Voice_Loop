@@ -12,6 +12,31 @@ Microphone → Whisper ASR → Gemini LLM → Text Processing → Piper TTS → 
 
 ---
 
+## Setup
+
+### API Key
+
+This project requires a Gemini API key.
+
+1. Copy the example env file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and replace `your_gemini_api_key_here` with your actual key:
+   ```
+   GEMINI_API_KEY=your_actual_key
+   ```
+
+The `.env` file is git-ignored and will never be committed.
+
+### Dependencies
+
+```bash
+pip install openai-whisper google-generativeai sounddevice scipy python-dotenv
+```
+
+---
+
 ## What I Built
 
 The system performs the following steps:
