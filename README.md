@@ -1,133 +1,251 @@
-# Minimal End-to-End Voice Interaction Loop
+# AI Voice Assistant (Week 2)
 
 ## Overview
 
-This project implements a minimal end-to-end voice interaction loop capable of recording user speech, transcribing it into text, generating a response using a Large Language Model (LLM), converting the generated response back into speech, and playing the audio response to the user.
+This project is a real-time AI Voice Assistant that combines Speech Recognition, Voice Activity Detection (VAD), a Large Language Model (LLM), and Text-to-Speech (TTS) synthesis into a single conversational pipeline.
 
-The objective was not to build a production-ready voice assistant, but rather to create a functional proof-of-concept that demonstrates the complete voice interaction pipeline within a limited timeframe.
+Unlike the Week 1 Proof-of-Concept, which relied on fixed-length audio recording, this implementation continuously listens to the microphone and automatically detects when the user starts and stops speaking.
 
-### Architecture
+---
 
-Microphone → Whisper ASR → Gemini LLM → Text Processing → Piper TTS → Audio Playback
+## Architecture
+
+```text
+User Speech
+      ↓
+Silero VAD
+      ↓
+Speech Chunk Collection
+      ↓
+Faster-Whisper ASR
+      ↓
+Gemini 2.5 Flash
+      ↓
+Piper TTS
+      ↓
+Spoken Response
+```
+
+---
+
+## Week 2 Improvements
+
+Compared to the Week 1 implementation, the following enhancements were added:
+
+* Continuous microphone capture
+* Automatic speech start/end detection using Silero VAD
+* Dynamic speech chunk collection
+* Faster-Whisper integration for local speech recognition
+* ASR latency measurement
+* Voice-based assistant termination commands
+* Improved conversational flow and responsiveness
+
+---
+
+## Features
+
+* Continuous microphone listening
+* Automatic Voice Activity Detection (VAD)
+* Local Speech-to-Text using Faster-Whisper
+* AI-generated responses using Gemini 2.5 Flash
+* Offline Text-to-Speech using Piper
+* Real-time latency monitoring
+* Voice-controlled stop commands
+* End-to-end conversational interaction
+
+---
+
+## Technologies Used
+
+### Speech Processing
+
+* Silero VAD
+* Faster-Whisper
+
+### Language Model
+
+* Gemini 2.5 Flash
+
+### Text-to-Speech
+
+* Piper TTS
+
+### Python Libraries
+
+* torch
+* numpy
+* scipy
+* sounddevice
+* soundfile
+* python-dotenv
+* google-generativeai
+
+---
+
+## Project Structure
+
+```text
+MINIMAL_VOICE_LOOP/
+│
+├── Silerio_VAD.ipynb
+├── .env
+├── response.txt
+├── temp_chunk.wav
+├── reply.wav
+│
+├── piper/
+│   ├── piper.exe
+│   ├── en_US-amy-medium.onnx
+│   └── en_US-amy-medium.onnx.json
+│
+├── requirements.txt
+└── README.md
+```
 
 ---
 
 ## Setup
 
-### API Key
-
-This project requires a Gemini API key.
-
-1. Copy the example env file:
-   ```bash
-   cp .env.example .env
-   ```
-2. Open `.env` and replace `your_gemini_api_key_here` with your actual key:
-   ```
-   GEMINI_API_KEY=your_actual_key
-   ```
-
-The `.env` file is git-ignored and will never be committed.
-
-### Dependencies
+### 1. Clone the Repository
 
 ```bash
-pip install openai-whisper google-generativeai sounddevice scipy python-dotenv
+git clone <repository-url>
+cd MINIMAL_VOICE_LOOP
 ```
 
----
+### 2. Install Dependencies
 
-## What I Built
+```bash
+pip install -r requirements.txt
+```
 
-The system performs the following steps:
+### 3. Configure Gemini API Key
 
-1. Records audio from the microphone.
-2. Saves the recording as `input.wav`.
-3. Uses Whisper to transcribe speech into text.
-4. Sends the transcript to Gemini for response generation.
-5. Cleans the generated text to remove unwanted formatting.
-6. Converts the response into speech using Piper.
-7. Saves the generated speech as `reply.wav`.
-8. Plays the synthesized audio response.
+Create a `.env` file in the project root directory.
 
-Generated artifacts:
+```env
+GEMINI_API_KEY=YOUR_API_KEY_HERE
+```
 
-* `input.wav`
-* `response.txt`
-* `reply.wav`
+> Note: The `.env` file is excluded from GitHub using `.gitignore` to prevent API key exposure.
 
----
 
-## What Worked
 
-* Successfully captured audio input from the microphone.
-* Whisper accurately transcribed spoken queries.
-* Gemini generated contextually relevant responses.
-* Piper synthesized speech from generated text.
-* The complete pipeline worked end-to-end without requiring manual intervention between stages.
-* Audio responses were generated and played back successfully.
+## Running the Assistant
 
----
+Open:
 
-## Challenges Encountered and How They Were Resolved
+```text
+Silerio_VAD.ipynb
+```
 
-### 1. Selecting an LLM API
+Run all cells sequentially.
 
-My initial approach was to use OpenAI's API for the language model component. However, I quickly encountered API quota limitations and usage restrictions. I also explored other cloud-based LLM APIs, but some required paid subscriptions or billing setup before they could be used.
+The assistant will begin listening automatically.
 
-To continue development without additional setup overhead, I switched to the Gemini API, which integrated smoothly and provided reliable responses for the project.
 
-### 2. Improving Speech Recognition Accuracy
 
-The first implementation used Whisper's **base** model. While functional, transcription accuracy was not always satisfactory.
+## Stop Commands
 
-To improve recognition quality, I upgraded to Whisper's **small** model. This resulted in noticeably better transcription accuracy while maintaining acceptable performance for a proof-of-concept system.
+The assistant can be terminated using the following voice commands:
 
-### 3. Generating Audio Responses with Piper
+* stop
+* exit
+* quit
+* goodbye
+* stop assistant
 
-One of the major issues encountered was the failure to generate the `reply.wav` file.
 
-After debugging the issue, I discovered that Piper requires a pretrained voice model for speech synthesis. Additionally, both the model file (`.onnx`) and its configuration file (`.onnx.json`) must be present and correctly referenced.
 
-Once the required files were downloaded and configured properly, Piper successfully generated audio responses.
+## Whisper Model Evaluation
 
-### 4. Improving Voice Quality
+Two Faster-Whisper models were evaluated during development.
 
-The initial implementation used the **Alan** voice model. Although functional, the generated speech sounded noticeably robotic.
+| Model  | Accuracy | Latency |
+| ------ | -------- | ------- |
+| Small  | Good     | Low     |
+| Medium | Better   | Higher  |
 
-To improve the user experience, I switched to the **en_US-amy-medium** voice model, which produced significantly more natural and conversational speech output.
+### Final Selection
 
-### 5. Unwanted Symbols in Speech Output
+The Faster-Whisper Small model was selected because the project prioritizes real-time conversational interaction and lower latency. While the Medium model improved transcription accuracy, it increased inference time and reduced responsiveness.
 
-Another challenge occurred when the language model occasionally generated markdown symbols such as asterisks (`*`) and other formatting characters.
 
-These symbols were sometimes spoken by the text-to-speech engine, resulting in unnatural audio output.
 
-To address this issue:
+## Challenges Faced
 
-* I instructed the LLM to generate plain-text responses without markdown formatting.
-* I added a preprocessing step that removes markdown symbols and unwanted characters before sending text to Piper.
+### 1. Silero VAD Input Size Mismatch
 
-This produced cleaner and more natural speech synthesis.
+**Issue:**
 
----
+text
+ValueError: Provided number of samples is 1536
 
-## Current Limitations
 
-Since the goal was to deliver a working proof-of-concept quickly, several advanced capabilities were intentionally left out:
+**Solution:**
 
-* No streaming speech recognition.
-* No streaming LLM responses.
-* No interruption handling during playback.
-* Fixed-duration recording instead of Voice Activity Detection (VAD).
-* No conversation memory between interactions.
-* No wake-word detection.
-* No real-time audio pipeline.
+* Changed audio block size to 512 samples.
+* Matched Silero VAD input requirements.
 
-These limitations were acceptable for the scope of this project because the primary objective was to build a complete working voice loop rather than a production-grade voice assistant.
 
----
 
-## Key Takeaway
+### 2. Speech Endpoint Detection
 
-Although the final implementation is intentionally simple, the most valuable part of the project was solving the integration challenges between ASR, LLM, and TTS components. The project successfully demonstrates a complete voice interaction pipeline while providing practical insights into model selection, API integration, speech synthesis configuration, and debugging real-world AI workflows.
+**Issue:**
+The assistant could not reliably determine when a user had finished speaking.
+
+**Solution:**
+
+* Tuned silence thresholds.
+* Reset VAD states after each interaction.
+
+
+
+### 3. Continuous Listening Control
+
+**Issue:**
+The assistant continuously listened without a termination mechanism.
+
+**Solution:**
+
+* Added voice-based stop commands.
+
+
+
+### 4. Piper Audio Playback Integration
+
+**Issue:**
+Speech audio was generated but not automatically played.
+
+**Solution:**
+
+* Integrated sounddevice and soundfile for playback.
+
+
+
+### 5. Whisper Accuracy vs Latency Trade-off
+
+**Issue:**
+The Medium model improved accuracy but increased latency.
+
+**Solution:**
+
+* Selected Faster-Whisper Small for deployment.
+
+
+
+## Future Improvements
+
+* Real-time web search integration
+* Weather and news APIs
+* Multi-turn conversation memory
+* Wake-word detection
+* Streaming transcription
+* Local LLM support
+* Speaker identification
+
+
+
+
+
+AI Voice Assistant – Week 2 Implementation
