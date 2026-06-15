@@ -1,0 +1,5 @@
+.env
+response.txt
+reply.wav
+temp_chunk.wav
+__pycache__/
